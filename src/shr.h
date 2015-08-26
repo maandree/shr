@@ -43,6 +43,9 @@
  * Create key that is recogined by `shr_open` as
  * an instruction to create a private shared ring buffer
  * 
+ * Undefined behaviour will be invoked if
+ * `sizeof(char) + BUFFER_COUNT * (BUFFER_SIZE + sizeof(size_t)) > SIZE_MAX`
+ * 
  * @param  KEY:struct shr_key *  Output parameter for the psuedo-key
  * @param  BUFFER_SIZE:size_t    The size of each buffer
  * @param  BUFFER_COUNT:size_t   The number of buffers
@@ -163,72 +166,276 @@ typedef struct shr
 
 
 
+/**
+ * Create a shared ring buffer
+ * 
+ * Undefined behaviour will be invoked if
+ * `sizeof(char) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
+ * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`
+ * 
+ * @param   key           Output parameter for the key, must not be `NULL`
+ * @param   buffer_size   The size of each buffer, in bytes
+ * @param   buffer_count  The number of buffers, most be positive, 3 is recommended
+ * @param   permissions   The permissions of the shared ring buffer,
+ *                        any access for a user means full access
+ * @return                Zero on success, -1 on error; on error,
+ *                        `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
-shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t mode);
+shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t permissions);
 
-void __attribute__((nonnull))
+/**
+ * Remove a shared ring buffer
+ * 
+ * @param  shr  The shared ring buffer, nothing will happen if this is `NULL`
+ */
+void
 shr_remove(const shr_t *restrict shr);
 
+/**
+ * Remove a shared ring buffer, without the need of opening it
+ * 
+ * @param  key  The key for the shared ring buffer, must not be `NULL`
+ */
 void __attribute__((nonnull))
 shr_remove_by_key(const shr_key_t *restrict key);
 
 
+/**
+ * Open a shared ring buffer
+ * 
+ * Undefined behaviour will be invoked if a shared ring buffer
+ * is opened for the same access direction more than once
+ * 
+ * @param   shr        Output parameter for the shared ring buffer, must not be `NULL`
+ * @param   key        The key for the shared ring buffer, use `SHR_PRIVATE` on the
+ *                     key before passing it to this function, to create and open a
+ *                     private shared ring buffer
+ * @param   direction  Whether the shared ring buffer should be opened
+ *                     for reading or writting, only one is allowed
+ * @return             Zero on success, -1 on error; on error,
+ *                     `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t direction);
 
+/**
+ * Duplicate a sharing ring buffer but reverse the direction,
+ * so that you get an instance for writting if you already
+ * have one for reading, or vise versa
+ * 
+ * This is only useful if you have used `shr_open` to
+ * create a private shared ring buffer
+ * 
+ * This function will reopen the shared ring buffer, thus,
+ * according to `shr_open`, undefined behaviour will be
+ * invoked if this function is used more than once on
+ * a shared ring buffer or if the shared ring buffer already
+ * has been opened for both directions
+ * 
+ * @param   shr  The shared ring buffer, must not be `NULL`
+ * @param   new  Output parameter for the new shared ring
+ *               buffer descriptor, must not be `NULL`
+ * @return       Zero on success, -1 on error; on error,
+ *               `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_reverse_duplicate(const shr_t *restrict old, shr_t *restrict new);
 
-int __attribute__((nonnull))
+/**
+ * Close a shared ring buffer
+ * 
+ * @param  shr  The shared ring buffer, nothing will happen if
+ *              this is `NULL`, or if it has already been closed
+ */
+void
 shr_close(shr_t *restrict shr);
 
 
+/**
+ * Change the ownership of a shared ring buffer
+ * 
+ * @param   shr    The shared ring buffer, must not be `NULL`
+ * @param   owner  The new owner of the shared ring buffer
+ * @param   group  The new group of the shared ring buffer
+ * @return         Zero on success, -1 on error; on error,
+ *                 `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group);
 
+/**
+ * Change the permissions of a shared ring buffer
+ * 
+ * @param   shr          The shared ring buffer, must not be `NULL`
+ * @param   permissions  The new permissions of the shared ring buffer,
+ *                       any access for a user means full access
+ * @return               Zero on success, -1 on error; on error,
+ *                       `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
-shr_chmod(const shr_t *restrict shr, mode_t mode);
+shr_chmod(const shr_t *restrict shr, mode_t permissions);
 
+/**
+ * Get the ownership and permisions of a shared ring buffer
+ * 
+ * @param   shr          The shared ring buffer, must not be `NULL`
+ * @param   owner        Output parameter for the owner of the shared
+ *                       ring buffer, ignored if `NULL`
+ * @param   group        Output parameter for the group of the shared
+ *                       ring buffer, ignored if `NULL`
+ * @param   permissions  Output parameter for the permissions of the
+ *                       shared ring buffer, ignored if `NULL`
+ * @return               Zero on success, -1 on error; on error,
+ *                       `errno` will be set to describe the error
+ */
 int __attribute__((nonnull(1)))
-shr_stat(const shr_t *restrict shr, uid_t *restrict owner, gid_t *restrict group, mode_t *restrict mode);
+shr_stat(const shr_t *restrict shr, uid_t *restrict owner, gid_t *restrict group, mode_t *restrict permissions);
 
 
+/**
+ * Convert a shared ring buffer key to a string
+ * 
+ * The length of `str` is not checked, it should
+ * be allocated with the size `SHR_KEY_STR_MAX * sizeof(char)`,
+ * if not undefined behaviour is invoked if its
+ * allocation is too small
+ * 
+ * @param  key  The key of the shared ring buffer, must not be `NULL`
+ * @param  str  Output buffer for the string representation of the key,
+ *              must not be `NULL` and must have an allocation size of
+ *              at least `SHR_KEY_STR_MAX * sizeof(char)`
+ */
 void __attribute__((nonnull))
 shr_key_to_str(const shr_key_t *restrict key, char *restrict str);
 
+/**
+ * Convert a string to a shared ring buffer key
+ * 
+ * This function does not validate the value of `str`
+ * 
+ * Undefinied behaviour is invoked if `str` is not
+ * NUL-terminated
+ * 
+ * @param  str  The string representation of the key of a
+ *              shared ring buffer, must not be `NULL`
+ * @param  key  Output parameter for the key represented by
+ *              `str`, must not be `NULL`
+ */
 void __attribute__((nonnull))
 shr_str_to_key(const char *restrict str, shr_key_t *restrict key);
 
 
+/**
+ * Wait for a shared ring buffer to be filled with readable data,
+ * and flag it as being currently read
+ * 
+ * @param   shr     The shared ring buffer, must not be `NULL`
+ * @param   buffer  Output parameter for the buffer to read, must not be `NULL`
+ * @param   length  Output parameter for the length of `*buffer`, must not be `NULL`
+ * @return          Zero on success, -1 on error; on error,
+ *                  `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length);
 
+/**
+ * Flag a shared ring buffer as being currently read,
+ * but fail if it has not readable data
+ * 
+ * @param   shr     The shared ring buffer, must not be `NULL`
+ * @param   buffer  Output parameter for the buffer to read, must not be `NULL`
+ * @param   length  Output parameter for the length of `*buffer`, must not be `NULL`
+ * @return          Zero on success, -1 on error; on error,
+ *                  `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length);
 
-int __attribute__((nonnull))
-shr_read_wait(shr_t *restrict shr);
-
+/**
+ * Wait, for a limited time, for a shared ring buffer to be filled
+ * with readable data, and flag it as being currently read
+ * 
+ * @param   shr      The shared ring buffer, must not be `NULL`
+ * @param   buffer   Output parameter for the buffer to read, must not be `NULL`
+ * @param   length   Output parameter for the length of `*buffer`, must not be `NULL`
+ * @param   timeout  The time limit, this should be a relative time, must not be `NULL`
+ * @return           Zero on success, -1 on error; on error,
+ *                   `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
 	       size_t *restrict length, const struct timespec *timeout);
 
+/**
+ * Wait for a shared ring buffer to be filled with readable data,
+ * but do not flag it as being currently read
+ * 
+ * @param   shr  The shared ring buffer, must not be `NULL`
+ * @return       Zero on success, -1 on error; on error,
+ *               `errno` will be set to describe the error
+ */
+int __attribute__((nonnull))
+shr_read_wait(shr_t *restrict shr);
+
+/**
+ * Wait, for a limited time, for a shared ring buffer to be filled
+ * with readable data, but do not flag it as being currently read
+ * 
+ * @param   shr      The shared ring buffer, must not be `NULL`
+ * @param   timeout  The time limit, this should be a relative time, `NULL`
+ *                   if the function shall fail immediately if it is not ready
+ * @return           Zero on success, -1 on error; on error,
+ *                   `errno` will be set to describe the error
+ */
+int __attribute__((nonnull(1)))
+shr_read_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
+
+/**
+ * Mark the, by `shr_read`, `shr_read_try` or `shr_read_timed`,
+ * retrieve buffer as fully read
+ * 
+ * @param   shr  The shared ring buffer, must not be `NULL`
+ * @return       Zero on success, -1 on error; on error,
+ *               `errno` will be set to describe the error
+ */
 int __attribute__((nonnull))
 shr_read_done(shr_t *restrict shr);
 
 
+/**
+ * 
+ */
 int __attribute__((nonnull))
 shr_write(shr_t *restrict shr, char **restrict buffer);
 
+/**
+ * 
+ */
 int __attribute__((nonnull))
 shr_write_try(shr_t *restrict shr, char **restrict buffer);
 
-int __attribute__((nonnull))
-shr_write_wait(shr_t *restrict shr, char **restrict buffer);
-
+/**
+ * 
+ */
 int __attribute__((nonnull))
 shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timespec *timeout);
 
+/**
+ * 
+ */
+int __attribute__((nonnull))
+shr_write_wait(shr_t *restrict shr);
+
+/**
+ * 
+ */
+int __attribute__((nonnull(1)))
+shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
+
+/**
+ * 
+ */
 int __attribute__((nonnull))
 shr_write_done(shr_t *restrict shr, size_t length);
 
