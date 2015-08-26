@@ -404,37 +404,81 @@ shr_read_done(shr_t *restrict shr);
 
 
 /**
+ * Wait for a shared ring buffer to be get a buffer ready for
+ * writting, and flag it as being currently written
  * 
+ * @param   shr     The shared ring buffer, must not be `NULL`
+ * @param   buffer  Output parameter for the buffer where the data
+ *                  should be written, must not be `NULL` and will
+ *                  have the allocation size `SHR_BUFFER_SIZE(shr)`
+ * @return          Zero on success, -1 on error; on error,
+ *                  `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_write(shr_t *restrict shr, char **restrict buffer);
 
 /**
+ * Flag a shared ring buffer as being currently written to,
+ * but fail if there is no buffer free for writing
  * 
+ * @param   shr     The shared ring buffer, must not be `NULL`
+ * @param   buffer  Output parameter for the buffer where the data
+ *                  should be written, must not be `NULL` and will
+ *                  have the allocation size `SHR_BUFFER_SIZE(shr)`
+ * @return          Zero on success, -1 on error; on error,
+ *                  `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_write_try(shr_t *restrict shr, char **restrict buffer);
 
 /**
+ * Wait, for a limited time, for a shared ring buffer to be get a
+ * buffer ready for writting, and flag it as being currently written
  * 
+ * @param   shr      The shared ring buffer, must not be `NULL`
+ * @param   buffer   Output parameter for the buffer where the data
+ *                   should be written, must not be `NULL` and will
+ *                   have the allocation size `SHR_BUFFER_SIZE(shr)`
+ * @param   timeout  The time limit, this should be a relative time,
+ *                   must not be `NULL`
+ * @return           Zero on success, -1 on error; on error,
+ *                   `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timespec *timeout);
 
 /**
+ * Wait for a shared ring buffer to be get a buffer ready for
+ * writting, but do not flag it as being currently written
  * 
+ * @param   shr  The shared ring buffer, must not be `NULL`
+ * @return       Zero on success, -1 on error; on error,
+ *               `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_write_wait(shr_t *restrict shr);
 
 /**
+ * Wait, for a limited time, for a shared ring buffer to be get a buffer
+ * ready for writting, but do not flag it as being currently written
  * 
+ * @param   shr      The shared ring buffer, must not be `NULL`
+ * @param   timeout  The time limit, this should be a relative time, `NULL`
+ *                   if the function shall fail immediately if it is not ready
+ * @return           Zero on success, -1 on error; on error,
+ *                   `errno` will be set to describe the error
  */
 int __attribute__((nonnull(1)))
 shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
 
 /**
+ * Mark the, by `shr_write`, `shr_write_try` or `shr_write_timed`,
+ * retrieve buffer as written and ready to be read
  * 
+ * @param   shr     The shared ring buffer, must not be `NULL`
+ * @param   length  The number of written bytes
+ * @return          Zero on success, -1 on error; on error,
+ *                  `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_write_done(shr_t *restrict shr, size_t length);
