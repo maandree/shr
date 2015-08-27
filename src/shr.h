@@ -150,7 +150,7 @@ typedef struct shr
 	 * Which access direction the shared
 	 * ring opened
 	 */
-	int direction;
+	shr_direction_t direction;
 
 	/**
 	 * The index of the current buffer
@@ -168,6 +168,9 @@ typedef struct shr
 
 /**
  * Create a shared ring buffer
+ * 
+ * The shared ring buffer will be owned by the calling
+ * process's effective user and effective group
  * 
  * Undefined behaviour will be invoked if
  * `sizeof(char) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
@@ -187,6 +190,8 @@ shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mod
 /**
  * Remove a shared ring buffer
  * 
+ * Undefined behaviour is invoked if called twice
+ * 
  * @param  shr  The shared ring buffer, nothing will happen if this is `NULL`
  */
 void
@@ -194,6 +199,8 @@ shr_remove(const shr_t *restrict shr);
 
 /**
  * Remove a shared ring buffer, without the need of opening it
+ * 
+ * Undefined behaviour is invoked if called twice
  * 
  * @param  key  The key for the shared ring buffer, must not be `NULL`
  */
@@ -204,7 +211,11 @@ shr_remove_by_key(const shr_key_t *restrict key);
 /**
  * Open a shared ring buffer
  * 
- * Undefined behaviour will be invoked if a shared ring buffer
+ * The shared ring buffer will be owned by the calling
+ * process's effective user and effective group, if
+ * created by this call, only the owner will have access
+ * 
+ * The behaviour is unspecified if a shared ring buffer
  * is opened for the same access direction more than once
  * 
  * @param   shr        Output parameter for the shared ring buffer, must not be `NULL`
@@ -228,10 +239,10 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
  * create a private shared ring buffer
  * 
  * This function will reopen the shared ring buffer, thus,
- * according to `shr_open`, undefined behaviour will be
- * invoked if this function is used more than once on
- * a shared ring buffer or if the shared ring buffer already
- * has been opened for both directions
+ * according to `shr_open`, the behaviour is unspecified if
+ * this function is used more than once on a shared ring
+ * buffer or if the shared ring buffer already has been
+ * opened for both directions
  * 
  * @param   shr  The shared ring buffer, must not be `NULL`
  * @param   new  Output parameter for the new shared ring
@@ -240,7 +251,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
  *               `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
-shr_reverse_duplicate(const shr_t *restrict old, shr_t *restrict new);
+shr_reverse_dup(const shr_t *restrict old, shr_t *restrict new);
 
 /**
  * Close a shared ring buffer
@@ -312,9 +323,11 @@ shr_key_to_str(const shr_key_t *restrict key, char *restrict str);
 /**
  * Convert a string to a shared ring buffer key
  * 
- * This function does not validate the value of `str`
+ * This function does not validate the value of `str`,
+ * undefined behaviour may be invoked if the string
+ * is not properly formatted
  * 
- * Undefinied behaviour is invoked if `str` is not
+ * Undefined behaviour is invoked if `str` is not
  * NUL-terminated
  * 
  * @param  str  The string representation of the key of a
@@ -330,6 +343,9 @@ shr_str_to_key(const char *restrict str, shr_key_t *restrict key);
  * Wait for a shared ring buffer to be filled with readable data,
  * and flag it as being currently read
  * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
+ * 
  * @param   shr     The shared ring buffer, must not be `NULL`
  * @param   buffer  Output parameter for the buffer to read, must not be `NULL`
  * @param   length  Output parameter for the length of `*buffer`, must not be `NULL`
@@ -343,6 +359,9 @@ shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict len
  * Flag a shared ring buffer as being currently read,
  * but fail if it has not readable data
  * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
+ * 
  * @param   shr     The shared ring buffer, must not be `NULL`
  * @param   buffer  Output parameter for the buffer to read, must not be `NULL`
  * @param   length  Output parameter for the length of `*buffer`, must not be `NULL`
@@ -355,6 +374,9 @@ shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict
 /**
  * Wait, for a limited time, for a shared ring buffer to be filled
  * with readable data, and flag it as being currently read
+ * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
  * 
  * @param   shr      The shared ring buffer, must not be `NULL`
  * @param   buffer   Output parameter for the buffer to read, must not be `NULL`
@@ -395,6 +417,9 @@ shr_read_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
  * Mark the, by `shr_read`, `shr_read_try` or `shr_read_timed`,
  * retrieve buffer as fully read
  * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
+ * 
  * @param   shr  The shared ring buffer, must not be `NULL`
  * @return       Zero on success, -1 on error; on error,
  *               `errno` will be set to describe the error
@@ -406,6 +431,9 @@ shr_read_done(shr_t *restrict shr);
 /**
  * Wait for a shared ring buffer to be get a buffer ready for
  * writting, and flag it as being currently written
+ * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
  * 
  * @param   shr     The shared ring buffer, must not be `NULL`
  * @param   buffer  Output parameter for the buffer where the data
@@ -421,6 +449,9 @@ shr_write(shr_t *restrict shr, char **restrict buffer);
  * Flag a shared ring buffer as being currently written to,
  * but fail if there is no buffer free for writing
  * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
+ * 
  * @param   shr     The shared ring buffer, must not be `NULL`
  * @param   buffer  Output parameter for the buffer where the data
  *                  should be written, must not be `NULL` and will
@@ -434,6 +465,9 @@ shr_write_try(shr_t *restrict shr, char **restrict buffer);
 /**
  * Wait, for a limited time, for a shared ring buffer to be get a
  * buffer ready for writting, and flag it as being currently written
+ * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
  * 
  * @param   shr      The shared ring buffer, must not be `NULL`
  * @param   buffer   Output parameter for the buffer where the data
@@ -474,6 +508,9 @@ shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
 /**
  * Mark the, by `shr_write`, `shr_write_try` or `shr_write_timed`,
  * retrieve buffer as written and ready to be read
+ * 
+ * Undefined behaviour is invoked if multiple processes use this
+ * function, even if not concurrently
  * 
  * @param   shr     The shared ring buffer, must not be `NULL`
  * @param   length  The number of written bytes
