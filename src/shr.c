@@ -587,8 +587,9 @@ shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
  * function, even if not concurrently
  * 
  * @param   shr  The shared ring buffer, must not be `NULL`
- * @return       Zero on success, -1 on error; on error,
- *               `errno` will be set to describe the error
+ * @return       Zero on success, -1 on error, 1 if the write
+ *               end has closed and all data has been read; on
+ *               error, `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_read_done(shr_t *restrict shr)
