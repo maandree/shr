@@ -1,0 +1,50 @@
+.TH SHR_CLOSE 3 SHR-%VERSION%
+.SH NAME
+.B shr_close
+\- Close a shared ring buffer.
+.SH SYNOPSIS
+.LP
+.nf
+#include <shr.h>
+.P
+void shr_close(shr_t *restrict \fIshr\fP);
+.fi
+.P
+Link with \fI\-lshr\fP.
+.SH DESCRIPTION
+The
+.BR shr_close ()
+function closes a shared ring buffer.
+.P
+Nothing will happen if \fIshr\fP is NULL or has already been closed.
+.SH RETURN VALUES
+None.
+.SH ERRORS
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

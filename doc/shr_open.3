@@ -1,0 +1,76 @@
+.TH SHR_OPEN 3 SHR-%VERSION%
+.SH NAME
+.B shr_open
+\- Open a shared ring buffer.
+.SH SYNOPSIS
+.LP
+.nf
+#include <shr.h>
+.P
+__attribute__((nonnull))
+int shr_open(shr_t *restrict \fIshr\fP, const shr_key_t *restrict \fIkey\fP, shr_direction_t \fIdirection\fP);
+.fi
+.P
+Link with \fI\-lshr\fP.
+.SH DESCRIPTION
+The
+.BR shr_open ()
+function opens a shared ring buffer.
+.P
+.BR shr_open ()
+can be used to create a private shared ring buffer.
+To do this, before calling
+.BR shr_open ()
+use the \fBSHR_PRIVATE\fP macro on \fIkey\fP, as
+such: \fBSHR_PRIVATE\fP(\fIkey\fP, \fIbuffer_size\fP,
+\fIbuffer_count\fP), where \fIbuffer_size\fP and
+\fIbuffer_count\fP are defined as in
+.BR shr_create (3).
+.P
+The shared ring buffer will be owned by the calling
+process's effective user and effective group, if
+created by the call to
+.BR shr_open (),
+only the owner will have access.
+.P
+The shared ring buffer will be opened for reading
+if (\fIdirection\fP == READ), and opened for writing
+if (\fIdirection\fP == WRITE). No other values, or
+combination of these values are allowed, lest the
+undefined behaviour will be invoked.
+.P
+The behaviour is unspecified if a shared ring buffer
+is opened for the same access direction more than once.
+.SH RETURN VALUES
+Upon successful completion, the function returns 0.
+Otherwise the function returns \-1 and sets
+\fIerrno\fP to indicate the error.
+.SH ERRORS
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

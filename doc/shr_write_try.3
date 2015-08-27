@@ -1,0 +1,64 @@
+.TH SHR_WRITE_TRY* 3 SHR-%VERSION%
+.SH NAME
+.B shr_write_try
+\- Prologue for writing to a shared ring buffer.
+.SH SYNOPSIS
+.LP
+.nf
+#include <shr.h>
+.P
+__attribute__((nonnull))
+int shr_write_try(shr_t *restrict \fIshr\fP, char **restrict \fIbuffer\fP);
+.fi
+.P
+Link with \fI\-lshr\fP.
+.SH DESCRIPTION
+The
+.BR shr_write_try ()
+function flags a shared ring buffer as being currently written to,
+but fail if there is no buffer free for writing.
+.P
+Upon successful completion, this function will store a buffer in
+\fIbuffer\fP. The caller should write the data that should be
+transmitted to this buffer. The number of written bytes must not
+exceed \fBSHR_BUFFER_SIZE\fP(\fIshr\fP).
+.P
+When the data has been written to (*\fIbuffer\fP), call the
+function
+.BR shr_write_done (3).
+.P
+Undefined behaviour is invoked if multiple processes use this
+function, even if not concurrently.
+.SH RETURN VALUES
+Upon successful completion, the function returns 0.
+Otherwise the function returns \-1 and sets
+errno to indicate the \fIerror\fP.
+.SH ERRORS
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

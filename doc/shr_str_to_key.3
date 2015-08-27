@@ -1,0 +1,57 @@
+.TH SHR_STR_TO_KEY 3 SHR-%VERSION%
+.SH NAME
+.B shr_str_to_key
+\- Convert a string to a shared ring buffer key.
+.SH SYNOPSIS
+.LP
+.nf
+#include <shr.h>
+.P
+__attribute__((nonnull))
+void shr_str_to_key(const char *restrict \fIstr\fP, shr_key_t *restrict \fIkey\fP);
+.fi
+.P
+Link with \fI\-lshr\fP.
+.SH DESCRIPTION
+The
+.BR shr_str_to_key ()
+function converts a string to a shared ring buffer key.
+The key is parse from \fIstr\fP and stored to \fIkey\fP.
+.P
+The function does not validate the value of \fIstr\fP.
+Undefined behaviour may be invoked if the string
+is improperly formatted.
+.P
+Undefined behaviour will also be invoked if \fIstr\fP
+is not NUL-terminated.
+.SH RETURN VALUES
+None.
+.SH ERRORS
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

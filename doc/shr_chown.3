@@ -1,0 +1,54 @@
+.TH SHR_CHOWN 3 SHR-%VERSION%
+.SH NAME
+.B shr_chown
+\- Change the ownership of a shared ring buffer.
+.SH SYNOPSIS
+.LP
+.nf
+#include <shr.h>
+.P
+__attribute__((nonnull))
+int shr_chown(const shr_t *restrict \fIshr\fP, uid_t \fIowner\fP, gid_t \fIgroup\fP);
+.fi
+.P
+Link with \fI\-lshr\fP.
+.SH DESCRIPTION
+The
+.BR shr_chown ()
+function changes the ownership of a shared ring buffer.
+.P
+The owner of the shared ring buffer will be set to
+\fIowner\fP, and the group will be set to \fIgroup\fP.
+.SH RETURN VALUES
+Upon successful completion, the function returns 0.
+Otherwise the function returns \-1 and sets
+\fIerrno\fP to indicate the error.
+.SH ERRORS
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

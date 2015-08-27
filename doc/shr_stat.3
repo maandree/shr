@@ -1,0 +1,75 @@
+.TH SHR_STAT 3 SHR-%VERSION%
+.SH NAME
+.B shr_stat
+\- Get the ownership and permisions of a shared ring buffer.
+.SH SYNOPSIS
+.LP
+.nf
+#include <shr.h>
+.P
+__attribute__((nonnull(1)))
+int shr_stat(const shr_t *restrict \fIshr\fP, uid_t *restrict \fIowner\fP,
+             gid_t *restrict \fIgroup\fP, mode_t *restrict \fIpermissions\fP);
+.fi
+.P
+Link with \fI\-lshr\fP.
+.SH DESCRIPTION
+The
+.BR shr_stat ()
+function retrieves the ownership and permissions of a shared ring buffer.
+.P
+The current owner of the shared ring buffer will be stored to \fIowner\P,
+unless \fIowner\P is NULL.
+.P
+The current group of the shared ring buffer will be stored to \fIgroup\P,
+unless \fIowner\P is NULL.
+.P
+The current permissions of the shared ring buffer will be stored to
+\fIpermissions\P, unless \fIpermissions\P is NULL. The permission bits
+are restricted to read and write access for the owner, group and others.
+If read access is granted, write access is also granted, and vice versa.
+.P
+The behaviour is unspecified if the shared ring buffer has been modified
+so that the underlaying shared memory segment and the underlaying
+semaphore array does not have the same owner, group and permissions.
+Or if the permissions are set in contrary to described above and in
+.P
+The buffer size of the shared ring buffer can be retrieved by using the
+\fBSHR_BUFFER_SIZE\fP macro as such: \fBSHR_BUFFER_SIZE\fP(\fIshr\fP)
+.P
+The buffer cound of the shared ring buffer can be retrieved by using the
+\fBSHR_BUFFER_COUNT\fP macro as such: \fBSHR_BUFFER_COUNT\fP(\fIshr\fP)
+.BR shr_chmod (3).
+.SH RETURN VALUES
+Upon successful completion, the function returns 0.
+Otherwise the function returns \-1 and sets
+\fIerrno\fP to indicate the error.
+.SH ERRORS
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

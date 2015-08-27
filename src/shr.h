@@ -235,7 +235,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 /**
  * Duplicate a sharing ring buffer but reverse the direction,
  * so that you get an instance for writting if you already
- * have one for reading, or vise versa
+ * have one for reading, or vice versa
  * 
  * This is only useful if you have used `shr_open` to
  * create a private shared ring buffer
@@ -290,7 +290,7 @@ int __attribute__((nonnull))
 shr_chmod(const shr_t *restrict shr, mode_t permissions);
 
 /**
- * Get the ownership and permisions of a shared ring buffer
+ * Get the ownership and permissions of a shared ring buffer
  * 
  * @param   shr          The shared ring buffer, must not be `NULL`
  * @param   owner        Output parameter for the owner of the shared
