@@ -73,7 +73,7 @@
  *                        `errno` will be set to describe the error
  * 
  * @throws  The errors EINVAL, ENOMEM, ENOSPC as specified for shmget(3) and semget(3)
- * @throws  Any error specified for shmat(3) and malloc(3)
+ * @throws  Any error specified for shmat(3), semctl(3) and malloc(3)
  */
 int __attribute__((nonnull))
 shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t permissions)
@@ -232,6 +232,7 @@ shr_remove_by_key(const shr_key_t *restrict key)
  *                     `errno` will be set to describe the error
  * 
  * @throws  Any error specified for shmget(3), shmat(3) and semget(3) except EINTR
+ * @throws  Any error semctl(3) and malloc(3) if creating a private shared ring buffer
  */
 int __attribute__((nonnull))
 shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t direction)
@@ -240,6 +241,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 	size_t sem_count = 2 * key->buffer_count;
 	size_t permissions = IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR;
 	void *address = NULL;
+	unsigned short *values = NULL;
 	int saved_errno;
 
 	shr->shm = shr->sem = -1;
@@ -279,12 +281,27 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 		goto fail;
 	}
 
-	/* FIXME initialise if private */
+	if (key->shm != IPC_PRIVATE)
+		return 0;
+	  
+	/* Initialise. */
+	*(size_t*)address = 0;
+	values = malloc(sem_count * sizeof(unsigned short));
+	if (!values)
+		goto fail;
+	for (i = 0; i < key->buffer_count; i++) {
+		values[WRITE_SEM(i)] = 1;
+		values[READ_SEM(i)]  = 0;
+	}
+	if (semctl(sem_id, 0, SETALL, values) == -1)
+		goto fail;
 
+	free(values);
 	return 0;
 
  fail:
 	saved_errno = errno;
+	free(values)
 	shr_close(shr);
 	return errno = saved_errno, -1;
 }

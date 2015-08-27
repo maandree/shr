@@ -187,7 +187,7 @@ typedef struct shr
  *                        `errno` will be set to describe the error
  * 
  * @throws  The errors EINVAL, ENOMEM, ENOSPC as specified for shmget(3) and semget(3)
- * @throws  Any error specified for shmat(3) and malloc(3)
+ * @throws  Any error specified for shmat(3), semctl(3) and malloc(3)
  */
 int __attribute__((nonnull))
 shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t permissions);
@@ -233,6 +233,7 @@ shr_remove_by_key(const shr_key_t *restrict key);
  *                     `errno` will be set to describe the error
  * 
  * @throws  Any error specified for shmget(3), shmat(3) and semget(3) except EINTR
+ * @throws  Any error semctl(3) and malloc(3) if creating a private shared ring buffer
  */
 int __attribute__((nonnull))
 shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t direction);
