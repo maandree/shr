@@ -242,6 +242,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 	size_t permissions = IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR;
 	void *address = NULL;
 	unsigned short *values = NULL;
+	size_t i;
 	int saved_errno;
 
 	shr->shm = shr->sem = -1;
@@ -293,7 +294,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 		values[WRITE_SEM(i)] = 1;
 		values[READ_SEM(i)]  = 0;
 	}
-	if (semctl(sem_id, 0, SETALL, values) == -1)
+	if (semctl(shr->sem, 0, SETALL, values) == -1)
 		goto fail;
 
 	free(values);
@@ -301,7 +302,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 
  fail:
 	saved_errno = errno;
-	free(values)
+	free(values);
 	shr_close(shr);
 	return errno = saved_errno, -1;
 }
