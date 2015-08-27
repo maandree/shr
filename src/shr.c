@@ -61,7 +61,8 @@
  * 
  * Undefined behaviour will be invoked if
  * `sizeof(size_t) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
- * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`
+ * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`,
+ * or if `buffer_count > SHORT_MAX`
  * 
  * @param   key           Output parameter for the key, must not be `NULL`
  * @param   buffer_size   The size of each buffer, in bytes

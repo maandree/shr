@@ -44,7 +44,8 @@
  * an instruction to create a private shared ring buffer
  * 
  * Undefined behaviour will be invoked if
- * `sizeof(size_t) + BUFFER_COUNT * (BUFFER_SIZE + sizeof(size_t)) > SIZE_MAX`
+ * `sizeof(size_t) + BUFFER_COUNT * (BUFFER_SIZE + sizeof(size_t)) > SIZE_MAX`,
+ * or if `BUFFER_COUNT > SHORT_MAX`
  * 
  * @param  KEY:struct shr_key *  Output parameter for the psuedo-key
  * @param  BUFFER_SIZE:size_t    The size of each buffer
@@ -174,7 +175,8 @@ typedef struct shr
  * 
  * Undefined behaviour will be invoked if
  * `sizeof(size_t) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
- * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`
+ * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`,
+ * or if `buffer_count > SHORT_MAX`
  * 
  * @param   key           Output parameter for the key, must not be `NULL`
  * @param   buffer_size   The size of each buffer, in bytes
