@@ -21,6 +21,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define _GNU_SOURCE
 #include "shr.h"
 
 #include <string.h>
@@ -39,7 +40,7 @@
  * @param   i  The index of the buffer
  * @return     The index of the semaphore
  */
-#define WRITE_SEM(i)  (2 * i + 0)
+#define WRITE_SEM(i)  (2 * (i) + 0)
 
 /**
  * Get the index of the semaphore for flagging
@@ -48,7 +49,7 @@
  * @param   i  The index of the buffer
  * @return     The index of the semaphore
  */
-#define READ_SEM(i)   (2 * i + 1)
+#define READ_SEM(i)   (2 * (i) + 1)
 
 
 
@@ -59,7 +60,7 @@
  * process's effective user and effective group
  * 
  * Undefined behaviour will be invoked if
- * `sizeof(char) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
+ * `sizeof(size_t) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
  * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`
  * 
  * @param   key           Output parameter for the key, must not be `NULL`
@@ -73,7 +74,7 @@
 int __attribute__((nonnull))
 shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t permissions)
 {
-	size_t ring_size = sizeof(char) + buffer_count * (buffer_size + sizeof(size_t));
+	size_t ring_size = sizeof(size_t) + buffer_count * (buffer_size + sizeof(size_t));
 	size_t sem_count = 2 * buffer_count;
 	void *address = NULL;
 	unsigned short *values = NULL;
@@ -229,7 +230,7 @@ shr_remove_by_key(const shr_key_t *restrict key)
 int __attribute__((nonnull))
 shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t direction)
 {
-	size_t ring_size = sizeof(char) + key->buffer_count * (key->buffer_size + sizeof(size_t));
+	size_t ring_size = sizeof(size_t) + key->buffer_count * (key->buffer_size + sizeof(size_t));
 	size_t sem_count = 2 * key->buffer_count;
 	size_t permissions = IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR;
 	int saved_errno;
@@ -331,8 +332,11 @@ shr_reverse_dup(const shr_t *restrict old, shr_t *restrict new)
 void
 shr_close(shr_t *restrict shr)
 {
-	if (shr->address)
+	if (shr->address) {
+		if (shr->direction == WRITE)
+			*(size_t*)(shr->address) = shr->current_buffer;
 		shmdt(shr->address), shr->address = NULL;
+	}
 }
 
 
@@ -493,7 +497,19 @@ shr_str_to_key(const char *restrict str, shr_key_t *restrict key)
 int __attribute__((nonnull))
 shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
 {
-	return (void)shr, (void)buffer, (void)length, 0;
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
+
+	op.sem_num = (unsigned short)READ_SEM(shr->current_buffer);
+	op.sem_op = -1;
+	op.sem_flg = 0;
+
+	if (semop(shr->sem, &op, (size_t)1))
+		return -1;
+
+	*buffer = shr->address + offset;
+	*length = *(size_t*)(shr->address + offset + shr->key.buffer_size);
+	return 0;
 }
 
 
@@ -513,7 +529,19 @@ shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict len
 int __attribute__((nonnull))
 shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
 {
-	return (void)shr, (void)buffer, (void)length, 0;
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
+
+	op.sem_num = (unsigned short)READ_SEM(shr->current_buffer);
+	op.sem_op = -1;
+	op.sem_flg = IPC_NOWAIT;
+
+	if (semop(shr->sem, &op, (size_t)1))
+		return -1;
+
+	*buffer = shr->address + offset;
+	*length = *(size_t*)(shr->address + offset + shr->key.buffer_size);
+	return 0;
 }
 
 
@@ -535,39 +563,19 @@ int __attribute__((nonnull))
 shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
 	       size_t *restrict length, const struct timespec *timeout)
 {
-	return (void)shr, (void)buffer, (void)length, (void)timeout, 0;
-}
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
 
+	op.sem_num = (unsigned short)READ_SEM(shr->current_buffer);
+	op.sem_op = -1;
+	op.sem_flg = 0;
 
-/**
- * Wait for a shared ring buffer to be filled with readable data,
- * but do not flag it as being currently read
- * 
- * @param   shr  The shared ring buffer, must not be `NULL`
- * @return       Zero on success, -1 on error; on error,
- *               `errno` will be set to describe the error
- */
-int __attribute__((nonnull))
-shr_read_wait(shr_t *restrict shr)
-{
-	return (void)shr, 0;
-}
+	if (semtimedop(shr->sem, &op, (size_t)1, timeout))
+		return -1;
 
-
-/**
- * Wait, for a limited time, for a shared ring buffer to be filled
- * with readable data, but do not flag it as being currently read
- * 
- * @param   shr      The shared ring buffer, must not be `NULL`
- * @param   timeout  The time limit, this should be a relative time, `NULL`
- *                   if the function shall fail immediately if it is not ready
- * @return           Zero on success, -1 on error; on error,
- *                   `errno` will be set to describe the error
- */
-int __attribute__((nonnull(1)))
-shr_read_wait_timed(shr_t *restrict shr, const struct timespec *timeout)
-{
-	return (void)shr, (void)timeout, 0;
+	*buffer = shr->address + offset;
+	*length = *(size_t*)(shr->address + offset + shr->key.buffer_size);
+	return 0;
 }
 
 
@@ -585,7 +593,17 @@ shr_read_wait_timed(shr_t *restrict shr, const struct timespec *timeout)
 int __attribute__((nonnull))
 shr_read_done(shr_t *restrict shr)
 {
-	return (void)shr, 0;
+	struct sembuf op;
+
+	op.sem_num = (unsigned short)WRITE_SEM(shr->current_buffer);
+	op.sem_op = +1;
+	op.sem_flg = 0;
+
+	if (semop(shr->sem, &op, (size_t)1))
+		return -1;
+
+	shr->current_buffer = (shr->current_buffer + 1) % shr->key.buffer_count;
+	return *(size_t*)(shr->address) == shr->current_buffer + 1;
 }
 
 
@@ -607,7 +625,18 @@ shr_read_done(shr_t *restrict shr)
 int __attribute__((nonnull))
 shr_write(shr_t *restrict shr, char **restrict buffer)
 {
-	return (void)shr, (void)buffer, 0;
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
+
+	op.sem_num = (unsigned short)WRITE_SEM(shr->current_buffer);
+	op.sem_op = -1;
+	op.sem_flg = 0;
+
+	if (semop(shr->sem, &op, (size_t)1))
+		return -1;
+
+	*buffer = shr->address + offset;
+	return 0;
 }
 
 
@@ -628,7 +657,18 @@ shr_write(shr_t *restrict shr, char **restrict buffer)
 int __attribute__((nonnull))
 shr_write_try(shr_t *restrict shr, char **restrict buffer)
 {
-	return (void)shr, (void)buffer, 0;
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
+
+	op.sem_num = (unsigned short)WRITE_SEM(shr->current_buffer);
+	op.sem_op = -1;
+	op.sem_flg = IPC_NOWAIT;
+
+	if (semop(shr->sem, &op, (size_t)1))
+		return -1;
+
+	*buffer = shr->address + offset;
+	return 0;
 }
 
 
@@ -651,40 +691,20 @@ shr_write_try(shr_t *restrict shr, char **restrict buffer)
 int __attribute__((nonnull))
 shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timespec *timeout)
 {
-	return (void)shr, (void)buffer, (void)timeout, 0;
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
+
+	op.sem_num = (unsigned short)WRITE_SEM(shr->current_buffer);
+	op.sem_op = -1;
+	op.sem_flg = 0;
+
+	if (semtimedop(shr->sem, &op, (size_t)1, timeout))
+		return -1;
+
+	*buffer = shr->address + offset;
+	return 0;
 }
 
-
-/**
- * Wait for a shared ring buffer to be get a buffer ready for
- * writting, but do not flag it as being currently written
- * 
- * @param   shr  The shared ring buffer, must not be `NULL`
- * @return       Zero on success, -1 on error; on error,
- *               `errno` will be set to describe the error
- */
-int __attribute__((nonnull))
-shr_write_wait(shr_t *restrict shr)
-{
-	return (void)shr, 0;
-}
-
-
-/**
- * Wait, for a limited time, for a shared ring buffer to be get a buffer
- * ready for writting, but do not flag it as being currently written
- * 
- * @param   shr      The shared ring buffer, must not be `NULL`
- * @param   timeout  The time limit, this should be a relative time, `NULL`
- *                   if the function shall fail immediately if it is not ready
- * @return           Zero on success, -1 on error; on error,
- *                   `errno` will be set to describe the error
- */
-int __attribute__((nonnull(1)))
-shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout)
-{
-	return (void)shr, (void)timeout, 0;
-}
 
 /**
  * Mark the, by `shr_write`, `shr_write_try` or `shr_write_timed`,
@@ -694,13 +714,27 @@ shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout)
  * function, even if not concurrently
  * 
  * @param   shr     The shared ring buffer, must not be `NULL`
- * @param   length  The number of written bytes
+ * @param   length  The number of written bytes,
+ *                  may not exceed `SHR_BUFFER_SIZE(shr)`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
  */
 int __attribute__((nonnull))
 shr_write_done(shr_t *restrict shr, size_t length)
 {
-	return (void)shr, (void)length, 0;
+	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
+	struct sembuf op;
+
+	*(size_t*)(shr->address + offset + shr->key.buffer_size) = length;
+
+	op.sem_num = (unsigned short)READ_SEM(shr->current_buffer);
+	op.sem_op = +1;
+	op.sem_flg = 0;
+
+	if (semop(shr->sem, &op, (size_t)1))
+		return -1;
+
+	shr->current_buffer = (shr->current_buffer + 1) % shr->key.buffer_count;
+	return 0;
 }
 

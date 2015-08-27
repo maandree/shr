@@ -44,7 +44,7 @@
  * an instruction to create a private shared ring buffer
  * 
  * Undefined behaviour will be invoked if
- * `sizeof(char) + BUFFER_COUNT * (BUFFER_SIZE + sizeof(size_t)) > SIZE_MAX`
+ * `sizeof(size_t) + BUFFER_COUNT * (BUFFER_SIZE + sizeof(size_t)) > SIZE_MAX`
  * 
  * @param  KEY:struct shr_key *  Output parameter for the psuedo-key
  * @param  BUFFER_SIZE:size_t    The size of each buffer
@@ -173,7 +173,7 @@ typedef struct shr
  * process's effective user and effective group
  * 
  * Undefined behaviour will be invoked if
- * `sizeof(char) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
+ * `sizeof(size_t) + buffer_count * (buffer_size + sizeof(size_t)) > SIZE_MAX`,
  * if `buffer_count == 0` or if `(permissions & ~(S_IRWXU | S_IRWXG | S_IRWXO))`
  * 
  * @param   key           Output parameter for the key, must not be `NULL`
@@ -390,30 +390,6 @@ shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
 	       size_t *restrict length, const struct timespec *timeout);
 
 /**
- * Wait for a shared ring buffer to be filled with readable data,
- * but do not flag it as being currently read
- * 
- * @param   shr  The shared ring buffer, must not be `NULL`
- * @return       Zero on success, -1 on error; on error,
- *               `errno` will be set to describe the error
- */
-int __attribute__((nonnull))
-shr_read_wait(shr_t *restrict shr);
-
-/**
- * Wait, for a limited time, for a shared ring buffer to be filled
- * with readable data, but do not flag it as being currently read
- * 
- * @param   shr      The shared ring buffer, must not be `NULL`
- * @param   timeout  The time limit, this should be a relative time, `NULL`
- *                   if the function shall fail immediately if it is not ready
- * @return           Zero on success, -1 on error; on error,
- *                   `errno` will be set to describe the error
- */
-int __attribute__((nonnull(1)))
-shr_read_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
-
-/**
  * Mark the, by `shr_read`, `shr_read_try` or `shr_read_timed`,
  * retrieve buffer as fully read
  * 
@@ -482,30 +458,6 @@ int __attribute__((nonnull))
 shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timespec *timeout);
 
 /**
- * Wait for a shared ring buffer to be get a buffer ready for
- * writting, but do not flag it as being currently written
- * 
- * @param   shr  The shared ring buffer, must not be `NULL`
- * @return       Zero on success, -1 on error; on error,
- *               `errno` will be set to describe the error
- */
-int __attribute__((nonnull))
-shr_write_wait(shr_t *restrict shr);
-
-/**
- * Wait, for a limited time, for a shared ring buffer to be get a buffer
- * ready for writting, but do not flag it as being currently written
- * 
- * @param   shr      The shared ring buffer, must not be `NULL`
- * @param   timeout  The time limit, this should be a relative time, `NULL`
- *                   if the function shall fail immediately if it is not ready
- * @return           Zero on success, -1 on error; on error,
- *                   `errno` will be set to describe the error
- */
-int __attribute__((nonnull(1)))
-shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
-
-/**
  * Mark the, by `shr_write`, `shr_write_try` or `shr_write_timed`,
  * retrieve buffer as written and ready to be read
  * 
@@ -513,7 +465,8 @@ shr_write_wait_timed(shr_t *restrict shr, const struct timespec *timeout);
  * function, even if not concurrently
  * 
  * @param   shr     The shared ring buffer, must not be `NULL`
- * @param   length  The number of written bytes
+ * @param   length  The number of written bytes,
+ *                  may not exceed `SHR_BUFFER_SIZE(shr)`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
  */
