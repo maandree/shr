@@ -52,7 +52,7 @@ bin/libshr.a: obj/shr-fpic.o
 	@ar rcs $@ $^
 
 bin/libshr.so.${LIB_VERSION}: obj/shr-fpic.o
-	@echo CC -o $@
+	@echo LD -o $@
 	@mkdir -p bin
 	@${CC} ${FLAGS} -shared -Wl,-soname,libshr.so.${LIB_MAJOR} -o $@ $^ ${LDFLAGS}
 
