@@ -34,6 +34,15 @@ Upon successful completion, the function returns 0.
 Otherwise the function returns \-1 and sets
 \fIerrno\fP to indicate the error.
 .SH ERRORS
+This function may fail with the errors
+.BR EACCES ,
+.BR EAGAIN ,
+.BR EIDRM ,
+.BR EINTR
+and
+.BR EINVAL ,
+as specified for the function
+.BR semop (3).
 .SH SEE ALSO
 .BR shr_create (3),
 .BR shr_remove (3),

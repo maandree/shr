@@ -46,6 +46,19 @@ Upon successful completion, the function returns 0.
 Otherwise the function returns \-1 and sets
 \fIerrno\fP to indicate the error.
 .SH ERRORS
+This function may fail with any error specified for
+.BR shmget (3),
+.BR shmat (3)
+or
+.BR semget (3),
+except
+.BR EINTR .
+It may also fail with any error specified for
+.BR semctl (3)
+or
+.BR malloc (3),
+if the function is used to create a private shared
+ring buffer.
 .SH SEE ALSO
 .BR shr_create (3),
 .BR shr_remove (3),

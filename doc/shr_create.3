@@ -48,6 +48,20 @@ Upon successful completion, the function returns 0.
 Otherwise the function returns \-1 and sets
 \fIerrno\fP to indicate the error.
 .SH ERRORS
+This function may fail with any error specified the functions
+.BR shmat (3),
+.BR semctl (3)
+and
+.BR malloc (3),
+as well as the errors
+.BR EINVAL ,
+.BR ENOMEM ,
+and
+.BR ENOSPC ,
+as specified for the functions
+.BR shmget (3)
+and
+.BR semget (3).
 .SH SEE ALSO
 .BR shr_create (3),
 .BR shr_remove (3),
