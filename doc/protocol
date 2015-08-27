@@ -1,0 +1,61 @@
+create:
+	Select two, non-private, XSI IPC keys.
+	The first key is used for shared memory.
+	The second key is used for the semaphore array.
+
+	The key for the shared ring buffer is the perioid-delimited
+	concatenation of the first key, the second key, the buffer
+	size and the buffer count in decimal form.
+
+	Create an XSI shared memory segment with the allocation size of
+	(sizeof size_t + buffer_count * (buffer_size + sizeof size_t),
+	zero-initialise at least the first (sizeof size_t) bytes.
+
+	Create an XSI semaphore array with (2 * buffer_count) semaphores,
+	set the value of all even-indexed semaphores to 1, and all
+	odd-indexed semaphores to 0. The seamphores are index from zero.
+
+
+read:
+	On open: set current_buffer to 0.
+
+	Acquire semaphore (2 * current_buffer + 1).
+
+	Read the first (sizeof size_t) with an offset of (sizeof size_t +
+	current_buffer * (buffer_size + sizeof size_t) + buffer_size) bytes
+	from the beginning of the shared memory segment. This is, in binary
+	format, the the number of bytes to read.
+
+	Read from shared memory segment with offset (sizeof size_t +
+	current_buffer * (buffer_size + sizeof size_t)). The number of bytes
+	to read was retrieved in the previous step.
+
+	Release semaphore (2 * current_buffer + 0).
+
+	Increase current_buffer by one, modulus buffer_count.
+
+	Read (sizeof size_t) bytes from the beginning of the shared memory
+	segment, if it is (current_buffer + 1) in binary, all data has been
+	read and the writer has closed.
+
+
+write:
+	On open: set current_buffer to 0.
+
+	Acquire semaphore (2 * current_buffer + 0).
+
+	Write at most buffer_size bytes to the shared memory segment with offset
+	(sizeof size_t + current_buffer * (buffer_size + sizeof size_t)).
+
+	Write the number of written bytes, in binary format, to the shared memory
+	segment with offset (sizeof size_t + current_buffer * (buffer_size +
+	sizeof size_t) + buffer_size), in (sizeof size_t) bytes.
+
+	Release semaphore (2 * current_buffer + 1).
+
+	Increase current_buffer by one, modulus buffer_count.
+
+	If done (closing):
+		Write (current_buffer + 1) in binary as a size_t,
+		to the beginning of the shared memory segment.
+
