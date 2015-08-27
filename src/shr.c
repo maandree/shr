@@ -121,7 +121,7 @@ shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mod
 	}
 
 	/* Initialise shared memory. */
-	*(char*)address = 0;
+	*(size_t*)address = 0;
 
 	/* Create semaphore array. */
 	for (;;) {
@@ -233,6 +233,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 	size_t ring_size = sizeof(size_t) + key->buffer_count * (key->buffer_size + sizeof(size_t));
 	size_t sem_count = 2 * key->buffer_count;
 	size_t permissions = IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR;
+	void *address = NULL;
 	int saved_errno;
 
 	shr->shm = shr->sem = -1;
@@ -252,14 +253,16 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 			goto retry_shm;
 		goto fail;
 	}
+	shr->address = NULL;
  retry_mem:
-	shr->address = shmat(shr->shm, NULL, direction);
-	if (!(shr->address) || (shr->address == (void*)-1)) {
+	address = shmat(shr->shm, NULL, direction);
+	if (!(address) || (address == (void*)-1)) {
 		if (errno == EINTR)
 			goto retry_mem;
-		shr->address = NULL;
+		address = NULL;
 		goto fail;
 	}
+	shr->address = address;
 
 	/* Get semaphore array. */
  retry_sem:

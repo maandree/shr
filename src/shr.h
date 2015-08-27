@@ -160,7 +160,7 @@ typedef struct shr
 	/**
 	 * The address of the shared memory
 	 */
-	void *address;
+	char *address;
 
 } shr_t;
 
