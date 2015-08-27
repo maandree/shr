@@ -1,0 +1,41 @@
+.TH LIBSHR 7 SHR-%VERSION%
+.SH NAME
+libshr - Shared memory with n-fold bufferings zero-copy data streaming
+.SH DESCRIPTION
+.BR shr
+is a n-fold buffered shared memory segment that can be used for
+fast zero-copy data streaming.
+.SH RATIONALE
+Message queues are not suitable for zero-copy interprocess communication,
+which is useful for low-latency interprocess communication. Message queues,
+be it XSI or POSIX, are also often more complex that required.
+.SH FUTURE DIRECTION
+None.
+.SH SEE ALSO
+.BR shr_create (3),
+.BR shr_remove (3),
+.BR shr_remove_by_key (3),
+.BR shr_open (3),
+.BR shr_reverse_dup (3),
+.BR shr_close (3),
+.BR shr_chown (3),
+.BR shr_chmod (3),
+.BR shr_stat (3),
+.BR shr_key_to_str (3),
+.BR shr_str_to_key (3),
+.BR shr_read (3),
+.BR shr_read_try (3),
+.BR shr_read_timed (3),
+.BR shr_read_done (3),
+.BR shr_write (3),
+.BR shr_write_try (3),
+.BR shr_write_timed (3),
+.BR shr_write_done (3)
+.SH AUTHORS
+Principal author, Mattias Andrée.  See the LICENSE file for the full
+list of authors.
+.SH LICENSE
+MIT/X Consortium License.
+.SH BUGS
+Please report bugs to https://github.com/maandree/shr/issues or to
+maandree@member.fsf.org

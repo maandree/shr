@@ -17,7 +17,7 @@ PKGNAME = shr
 MAN3 = # shr_create shr_remove shr_remove_by_key shr_open shr_reverse_dup shr_close shr_chown shr_chmod  \
          shr_stat shr_key_to_str shr_str_to_key shr_read shr_read_try shr_read_timed shr_read_done  \
          shr_write shr_write_try shr_write_timed shr_write_done
-MAN7 = # libshr
+MAN7 = libshr
 
 
 FLAGS = -std=c99 -Wall -Wextra -pedantic -O2
