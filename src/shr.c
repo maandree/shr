@@ -72,7 +72,7 @@
  * @return                Zero on success, -1 on error; on error,
  *                        `errno` will be set to describe the error
  * 
- * @throws  The errors EINVAL, ENOMEM, ENOSPC as specified for shmget(3) and semget(3)
+ * @throws  The errors EINVAL, ENOMEM and ENOSPC, as specified for shmget(3) and semget(3)
  * @throws  Any error specified for shmat(3), semctl(3) and malloc(3)
  */
 int __attribute__((nonnull))
@@ -380,7 +380,7 @@ shr_close(shr_t *restrict shr)
  * @return         Zero on success, -1 on error; on error,
  *                 `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EPERM and EINVAL as specified for shmctl(3) and semctl(3)
+ * @throws  The errors EACCES, EPERM and EINVAL, as specified for shmctl(3) and semctl(3)
  */
 int __attribute__((nonnull))
 shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group)
@@ -410,7 +410,7 @@ shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group)
  * @return               Zero on success, -1 on error; on error,
  *                       `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EPERM and EINVAL as specified for shmctl(3) and semctl(3)
+ * @throws  The errors EACCES, EPERM and EINVAL, as specified for shmctl(3) and semctl(3)
  */
 int __attribute__((nonnull))
 shr_chmod(const shr_t *restrict shr, mode_t permissions)
@@ -448,7 +448,7 @@ shr_chmod(const shr_t *restrict shr, mode_t permissions)
  * @return               Zero on success, -1 on error; on error,
  *                       `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES and EINVAL as specified for shmctl(3) and semctl(3)
+ * @throws  The errors EACCES and EINVAL, as specified for shmctl(3) and semctl(3)
  */
 int __attribute__((nonnull(1)))
 shr_stat(const shr_t *restrict shr, uid_t *restrict owner, gid_t *restrict group, mode_t *restrict permissions)
@@ -530,7 +530,7 @@ shr_str_to_key(const char *restrict str, shr_key_t *restrict key)
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EIDRM, EINTR and EINVAL as specified for semop(3)
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
@@ -564,7 +564,7 @@ shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict len
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EAGAIN, EIDRM, EINTR and EINVAL
+ * @throws  The errors EACCES, EAGAIN, EIDRM, EINTR and EINVAL,
  *          as specified for semop(3)
  */
 int __attribute__((nonnull))
@@ -600,7 +600,7 @@ shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict
  * @return           Zero on success, -1 on error; on error,
  *                   `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EAGAIN, EFAULT, EIDRM, EINTR and EINVAL
+ * @throws  The errors EACCES, EAGAIN, EFAULT, EIDRM, EINTR and EINVAL,
  *          as specified for semtimedop(3)
  */
 int __attribute__((nonnull))
@@ -635,7 +635,7 @@ shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
  *               end has closed and all data has been read; on
  *               error, `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EIDRM, EINTR and EINVAL as specified for semop(3)
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_read_done(shr_t *restrict shr)
@@ -669,7 +669,7 @@ shr_read_done(shr_t *restrict shr)
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EIDRM, EINTR and EINVAL as specified for semop(3)
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_write(shr_t *restrict shr, char **restrict buffer)
