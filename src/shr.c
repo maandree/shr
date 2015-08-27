@@ -71,6 +71,9 @@
  *                        any access for a user means full access
  * @return                Zero on success, -1 on error; on error,
  *                        `errno` will be set to describe the error
+ * 
+ * @throws  The errors EINVAL, ENOMEM, ENOSPC as specified for shmget(3) and semget(3)
+ * @throws  Any error specified for shmat(3) and malloc(3)
  */
 int __attribute__((nonnull))
 shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t permissions)
@@ -103,16 +106,16 @@ shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mod
 		key->shm = (key_t)r + 1;
 		if (key->shm == IPC_PRIVATE)
 			continue;
-      
+
 		shm_id = shmget(key->shm, ring_size, IPC_CREAT | IPC_EXCL | (int)permissions);
 		if (shm_id != -1)
 			break;
-      
+
 		if ((errno != EEXIST) && (errno != EINTR)) {
 			key->shm = IPC_PRIVATE;
 			goto fail;
 		}
-	  }
+	}
 
 	/* Get shared memory. */
 	address = shmat(shm_id, NULL, 0);
@@ -227,6 +230,8 @@ shr_remove_by_key(const shr_key_t *restrict key)
  *                     for reading or writting, only one is allowed
  * @return             Zero on success, -1 on error; on error,
  *                     `errno` will be set to describe the error
+ * 
+ * @throws  Any error specified for shmget(3), shmat(3) and semget(3) except EINTR
  */
 int __attribute__((nonnull))
 shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t direction)
@@ -274,6 +279,8 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 		goto fail;
 	}
 
+	/* FIXME initialise if private */
+
 	return 0;
 
  fail:
@@ -302,6 +309,8 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
  *               buffer descriptor, must not be `NULL`
  * @return       Zero on success, -1 on error; on error,
  *               `errno` will be set to describe the error
+ * 
+ * @throws  Any error specified for shmat(3)
  */
 int __attribute__((nonnull))
 shr_reverse_dup(const shr_t *restrict old, shr_t *restrict new)
@@ -353,6 +362,8 @@ shr_close(shr_t *restrict shr)
  * @param   group  The new group of the shared ring buffer
  * @return         Zero on success, -1 on error; on error,
  *                 `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EPERM and EINVAL as specified for shmctl(3) and semctl(3)
  */
 int __attribute__((nonnull))
 shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group)
@@ -381,6 +392,8 @@ shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group)
  *                       any access for a user means full access
  * @return               Zero on success, -1 on error; on error,
  *                       `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EPERM and EINVAL as specified for shmctl(3) and semctl(3)
  */
 int __attribute__((nonnull))
 shr_chmod(const shr_t *restrict shr, mode_t permissions)
@@ -417,6 +430,8 @@ shr_chmod(const shr_t *restrict shr, mode_t permissions)
  *                       shared ring buffer, ignored if `NULL`
  * @return               Zero on success, -1 on error; on error,
  *                       `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES and EINVAL as specified for shmctl(3) and semctl(3)
  */
 int __attribute__((nonnull(1)))
 shr_stat(const shr_t *restrict shr, uid_t *restrict owner, gid_t *restrict group, mode_t *restrict permissions)
@@ -497,6 +512,8 @@ shr_str_to_key(const char *restrict str, shr_key_t *restrict key)
  * @param   length  Output parameter for the length of `*buffer`, must not be `NULL`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
@@ -529,6 +546,9 @@ shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict len
  * @param   length  Output parameter for the length of `*buffer`, must not be `NULL`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EAGAIN, EIDRM, EINTR and EINVAL
+ *          as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
@@ -562,6 +582,9 @@ shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict
  * @param   timeout  The time limit, this should be a relative time, must not be `NULL`
  * @return           Zero on success, -1 on error; on error,
  *                   `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EAGAIN, EFAULT, EIDRM, EINTR and EINVAL
+ *          as specified for semtimedop(3)
  */
 int __attribute__((nonnull))
 shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
@@ -594,6 +617,8 @@ shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
  * @return       Zero on success, -1 on error, 1 if the write
  *               end has closed and all data has been read; on
  *               error, `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_read_done(shr_t *restrict shr)
@@ -626,6 +651,8 @@ shr_read_done(shr_t *restrict shr)
  *                  have the allocation size `SHR_BUFFER_SIZE(shr)`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_write(shr_t *restrict shr, char **restrict buffer)
@@ -658,6 +685,9 @@ shr_write(shr_t *restrict shr, char **restrict buffer)
  *                  have the allocation size `SHR_BUFFER_SIZE(shr)`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EAGAIN, EIDRM, EINTR and EINVAL,
+ *          as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_write_try(shr_t *restrict shr, char **restrict buffer)
@@ -692,6 +722,9 @@ shr_write_try(shr_t *restrict shr, char **restrict buffer)
  *                   must not be `NULL`
  * @return           Zero on success, -1 on error; on error,
  *                   `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EAGAIN, EFAULT, EIDRM, EINTR and EINVAL,
+ *          as specified for semtimedop(3)
  */
 int __attribute__((nonnull))
 shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timespec *timeout)
@@ -723,6 +756,8 @@ shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timesp
  *                  may not exceed `SHR_BUFFER_SIZE(shr)`
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
+ * 
+ * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int __attribute__((nonnull))
 shr_write_done(shr_t *restrict shr, size_t length)
