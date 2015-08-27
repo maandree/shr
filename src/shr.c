@@ -90,7 +90,7 @@ shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mod
 	permissions |= (permissions & S_IRWXU) ? S_IRWXU : 0;
 	permissions |= (permissions & S_IRWXG) ? S_IRWXG : 0;
 	permissions |= (permissions & S_IRWXO) ? S_IRWXO : 0;
-	permissions &= ~(S_IXUSR | S_IXGRP | S_IXOTH);
+	permissions &= (mode_t)~(S_IXUSR | S_IXGRP | S_IXOTH);
 
 	/* Create shared memory. */
 	for (;;) {
@@ -103,7 +103,7 @@ shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mod
 		if (key->shm == IPC_PRIVATE)
 			continue;
       
-		shm_id = shmget(key->shm, ring_size, IPC_CREAT | IPC_EXCL | permissions);
+		shm_id = shmget(key->shm, ring_size, IPC_CREAT | IPC_EXCL | (int)permissions);
 		if (shm_id != -1)
 			break;
       
@@ -134,7 +134,7 @@ shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mod
 		if (key->sem == IPC_PRIVATE)
 			continue;
 
-		sem_id = semget(key->sem, sem_count, IPC_CREAT | IPC_EXCL | permissions);
+		sem_id = semget(key->sem, (int)sem_count, IPC_CREAT | IPC_EXCL | (int)permissions);
 		if (sem_id != -1)
 			break;
 
@@ -247,7 +247,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 
 	/* Get shared memory. */
  retry_shm:
-	shr->shm = shmget(key->shm, ring_size, permissions);
+	shr->shm = shmget(key->shm, ring_size, (int)permissions);
 	if (shr->shm == -1) {
 		if (errno == EINTR)
 			goto retry_shm;
@@ -266,7 +266,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 
 	/* Get semaphore array. */
  retry_sem:
-	shr->sem = semget(shr->sem, sem_count, permissions);
+	shr->sem = semget(shr->sem, (int)sem_count, (int)permissions);
 	if (shr->sem == -1) {
 		if (errno == EINTR)
 			goto retry_sem;
@@ -390,12 +390,12 @@ shr_chmod(const shr_t *restrict shr, mode_t permissions)
 	permissions |= (permissions & S_IRWXU) ? S_IRWXU : 0;
 	permissions |= (permissions & S_IRWXG) ? S_IRWXG : 0;
 	permissions |= (permissions & S_IRWXO) ? S_IRWXO : 0;
-	permissions &= ~(S_IXUSR | S_IXGRP | S_IXOTH);
+	permissions &= (mode_t)~(S_IXUSR | S_IXGRP | S_IXOTH);
 
 	if (shmctl(shr->shm,    IPC_STAT, &shm_stat) == -1)  return -1;
 	if (semctl(shr->sem, 0, IPC_STAT, &sem_stat) == -1)  return -1;
 
-	shm_stat.shm_perm.mode = sem_stat.sem_perm.mode = permissions;
+	shm_stat.shm_perm.mode = sem_stat.sem_perm.mode = (unsigned short)permissions;
 
 	if (shmctl(shr->shm,    IPC_SET, &shm_stat) == -1)  return -1;
 	if (semctl(shr->sem, 0, IPC_SET, &sem_stat) == -1)  return -1;
