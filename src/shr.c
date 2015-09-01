@@ -364,7 +364,7 @@ void
 shr_close(shr_t *restrict shr)
 {
 	if (shr->address) {
-		if (shr->direction == WRITE)
+		if (shr->direction == SHR_WRITE)
 			*(size_t*)(shr->address) = shr->current_buffer + 1;
 		shmdt(shr->address), shr->address = NULL;
 	}
