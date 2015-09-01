@@ -198,7 +198,7 @@ typedef struct shr
  * @throws  Any error specified for shmat(3), semctl(3) and malloc(3)
  */
 int shr_create(shr_key_t *restrict, size_t, size_t, mode_t)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Remove a shared ring buffer
@@ -243,7 +243,7 @@ void shr_remove_by_key(const shr_key_t *restrict)
  * @throws  Any error semctl(3) and malloc(3) if creating a private shared ring buffer
  */
 int shr_open(shr_t *restrict, const shr_key_t *restrict, shr_direction_t)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Duplicate a sharing ring buffer but reverse the direction,
@@ -268,7 +268,7 @@ int shr_open(shr_t *restrict, const shr_key_t *restrict, shr_direction_t)
  * @throws  Any error specified for shmat(3)
  */
 int shr_reverse_dup(const shr_t *restrict, shr_t *restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Close a shared ring buffer
@@ -291,7 +291,7 @@ void shr_close(shr_t *restrict);
  * @throws  The errors EACCES, EPERM and EINVAL, as specified for shmctl(3) and semctl(3)
  */
 int shr_chown(const shr_t *restrict, uid_t, gid_t)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Change the permissions of a shared ring buffer
@@ -305,7 +305,7 @@ int shr_chown(const shr_t *restrict, uid_t, gid_t)
  * @throws  The errors EACCES, EPERM and EINVAL, as specified for shmctl(3) and semctl(3)
  */
 int shr_chmod(const shr_t *restrict, mode_t)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Get the ownership and permissions of a shared ring buffer
@@ -323,7 +323,7 @@ int shr_chmod(const shr_t *restrict, mode_t)
  * @throws  The errors EACCES and EINVAL, as specified for shmctl(3) and semctl(3)
  */
 int shr_stat(const shr_t *restrict, uid_t *restrict, gid_t *restrict, mode_t *restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull(1))));
+	SHR_COMPILER_GCC(__attribute__((nonnull(1), warn_unused_result)));
 
 
 /**
@@ -377,7 +377,7 @@ void shr_str_to_key(const char *restrict, shr_key_t *restrict)
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int shr_read(shr_t *restrict, const char **restrict, size_t *restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Flag a shared ring buffer as being currently read,
@@ -396,7 +396,7 @@ int shr_read(shr_t *restrict, const char **restrict, size_t *restrict)
  *          as specified for semop(3)
  */
 int shr_read_try(shr_t *restrict, const char **restrict, size_t *restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Wait, for a limited time, for a shared ring buffer to be filled
@@ -416,7 +416,7 @@ int shr_read_try(shr_t *restrict, const char **restrict, size_t *restrict)
  *          as specified for semtimedop(3)
  */
 int shr_read_timed(shr_t *restrict, const char **restrict, size_t *restrict, const struct timespec *)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Mark the, by `shr_read`, `shr_read_try` or `shr_read_timed`,
@@ -433,7 +433,7 @@ int shr_read_timed(shr_t *restrict, const char **restrict, size_t *restrict, con
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int shr_read_done(shr_t *restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 
 /**
@@ -453,7 +453,7 @@ int shr_read_done(shr_t *restrict)
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int shr_write(shr_t *restrict, char **restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Flag a shared ring buffer as being currently written to,
@@ -473,7 +473,7 @@ int shr_write(shr_t *restrict, char **restrict)
  *          as specified for semop(3)
  */
 int shr_write_try(shr_t *restrict, char **restrict)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Wait, for a limited time, for a shared ring buffer to be get a
@@ -495,7 +495,7 @@ int shr_write_try(shr_t *restrict, char **restrict)
  *          as specified for semtimedop(3)
  */
 int shr_write_timed(shr_t *restrict, char **restrict, const struct timespec *)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 /**
  * Mark the, by `shr_write`, `shr_write_try` or `shr_write_timed`,
@@ -513,7 +513,7 @@ int shr_write_timed(shr_t *restrict, char **restrict, const struct timespec *)
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
 int shr_write_done(shr_t *restrict, size_t)
-	SHR_COMPILER_GCC(__attribute__((nonnull)));
+	SHR_COMPILER_GCC(__attribute__((nonnull, warn_unused_result)));
 
 
 
