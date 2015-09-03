@@ -25,6 +25,9 @@
 #define SHR_H
 
 
+#ifndef _DEFAULT_SOURCE
+# define _DEFAULT_SOURCE
+#endif
 #include <stddef.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
