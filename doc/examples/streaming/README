@@ -1,0 +1,17 @@
+This example demonstrate how to stream
+data between two processes using a
+shared ring buffer.
+
+
+First, create a shared ring buffer:
+
+	./send < FILE
+
+This command will print the key,
+and start transmitting.
+
+Then, start the processes to receive
+the data, in another terminal:
+
+	./recv KEY
+
