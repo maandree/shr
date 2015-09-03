@@ -1,0 +1,6 @@
+A simple example that demonstrates how to create
+a shared ring buffer, and how to remove it.
+
+This example also demonstrates how to convert
+a key to a string, and a string to a key.
+
