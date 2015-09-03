@@ -1,0 +1,22 @@
+This example demonstrates
+* shr_chown
+* shr_chmod
+* shr_stat
+* SHR_BUFFER_SIZE
+* SHR_BUFFER_COUNT
+
+
+First, create the shared ring buffer:
+
+	./create BUFFER-SIZE BUFFER-COUNT UID GID MODE
+
+All arguments are numerical. MODE is in octal,
+the others are in decimal.
+
+Then, remove the ring buffer. This will
+stat the ring buffer before it it remove.
+
+	./stat-and-remove KEY
+
+The key to use is printed by ./create.
+

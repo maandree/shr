@@ -1,6 +1,5 @@
 #include <shr.h>
 #include <stdio.h>
-#include <stdint.h>
 
 
 #define t(c)  if (called = #c, (c) < 0)  goto fail
