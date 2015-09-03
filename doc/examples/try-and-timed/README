@@ -1,0 +1,17 @@
+This is a variant of the streaming example,
+that uses shr_{read,write}_{try,timed}.
+
+
+First, create a shared ring buffer:
+
+	./send
+
+This command will print the key,
+and start transmitting input from
+stdin.
+
+Then, start the processes to receive
+the data, in another terminal:
+
+	./recv KEY
+
