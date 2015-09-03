@@ -1,0 +1,12 @@
+This example demonstrate how to use
+private shared ring buffers.
+
+
+This program will fork itself so that
+it has process that reads a file, and
+another process that prints the file.
+
+To run the example, run:
+
+	./private < FILE
+
