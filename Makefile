@@ -113,7 +113,6 @@ install-man7: $(foreach M,${MAN7},bin/${M}.7)
 	@install -m644 $^ -- "${DESTDIR}${MANDIR}/man7"
 
 uninstall:
-	-rm -- "${DESTDIR}${BINDIR}/shr"
 	-rm -- "${DESTDIR}${LIBDIR}/libshr.so.${LIB_VERSION}"
 	-rm -- "${DESTDIR}${LIBDIR}/libshr.so.${LIB_MAJOR}"
 	-rm -- "${DESTDIR}${LIBDIR}/libshr.so"
