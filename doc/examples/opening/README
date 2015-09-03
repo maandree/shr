@@ -1,0 +1,4 @@
+A simple example that demonstrates how to create
+a shared ring buffer, open it, and then close
+and remove it.
+

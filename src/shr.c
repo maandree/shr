@@ -75,7 +75,7 @@
  * @throws  The errors EINVAL, ENOMEM and ENOSPC, as specified for shmget(3) and semget(3)
  * @throws  Any error specified for shmat(3), semctl(3) and malloc(3)
  */
-int __attribute__((nonnull))
+int
 shr_create(shr_key_t *restrict key, size_t buffer_size, size_t buffer_count, mode_t permissions)
 {
 	size_t ring_size = sizeof(size_t) + buffer_count * (buffer_size + sizeof(size_t));
@@ -200,7 +200,7 @@ shr_remove(const shr_t *restrict shr)
  * 
  * @param  key  The key for the shared ring buffer, must not be `NULL`
  */
-void __attribute__((nonnull))
+void
 shr_remove_by_key(const shr_key_t *restrict key)
 {
 	struct shmid_ds _info;
@@ -234,7 +234,7 @@ shr_remove_by_key(const shr_key_t *restrict key)
  * @throws  Any error specified for shmget(3), shmat(3) and semget(3) except EINTR
  * @throws  Any error semctl(3) and malloc(3) if creating a private shared ring buffer
  */
-int __attribute__((nonnull))
+int
 shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t direction)
 {
 	size_t ring_size = sizeof(size_t) + key->buffer_count * (key->buffer_size + sizeof(size_t));
@@ -275,7 +275,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
 
 	/* Get semaphore array. */
  retry_sem:
-	shr->sem = semget(shr->sem, (int)sem_count, (int)permissions);
+	shr->sem = semget(key->sem, (int)sem_count, (int)permissions);
 	if (shr->sem == -1) {
 		if (errno == EINTR)
 			goto retry_sem;
@@ -330,7 +330,7 @@ shr_open(shr_t *restrict shr, const shr_key_t *restrict key, shr_direction_t dir
  * 
  * @throws  Any error specified for shmat(3)
  */
-int __attribute__((nonnull))
+int
 shr_reverse_dup(const shr_t *restrict old, shr_t *restrict new)
 {
 	*new = *old;
@@ -383,7 +383,7 @@ shr_close(shr_t *restrict shr)
  * 
  * @throws  The errors EACCES, EPERM and EINVAL, as specified for shmctl(3) and semctl(3)
  */
-int __attribute__((nonnull))
+int
 shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group)
 {
 	struct shmid_ds shm_stat;
@@ -413,7 +413,7 @@ shr_chown(const shr_t *restrict shr, uid_t owner, gid_t group)
  * 
  * @throws  The errors EACCES, EPERM and EINVAL, as specified for shmctl(3) and semctl(3)
  */
-int __attribute__((nonnull))
+int
 shr_chmod(const shr_t *restrict shr, mode_t permissions)
 {
 	struct shmid_ds shm_stat;
@@ -451,7 +451,7 @@ shr_chmod(const shr_t *restrict shr, mode_t permissions)
  * 
  * @throws  The errors EACCES and EINVAL, as specified for shmctl(3) and semctl(3)
  */
-int __attribute__((nonnull(1)))
+int
 shr_stat(const shr_t *restrict shr, uid_t *restrict owner, gid_t *restrict group, mode_t *restrict permissions)
 {
 	struct shmid_ds shm_stat;
@@ -481,7 +481,7 @@ shr_stat(const shr_t *restrict shr, uid_t *restrict owner, gid_t *restrict group
  *              must not be `NULL` and must have an allocation size of
  *              at least `SHR_KEY_STR_MAX * sizeof(char)`
  */
-void __attribute__((nonnull))
+void
 shr_key_to_str(const shr_key_t *restrict key, char *restrict str)
 {
 	sprintf(str, "%zu.%zu.%zu.%zu",
@@ -505,7 +505,7 @@ shr_key_to_str(const shr_key_t *restrict key, char *restrict str)
  * @param  key  Output parameter for the key represented by
  *              `str`, must not be `NULL`
  */
-void __attribute__((nonnull))
+void
 shr_str_to_key(const char *restrict str, shr_key_t *restrict key)
 {
 	char c;
@@ -533,7 +533,7 @@ shr_str_to_key(const char *restrict str, shr_key_t *restrict key)
  * 
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
-int __attribute__((nonnull))
+int
 shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
 {
 	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
@@ -568,7 +568,7 @@ shr_read(shr_t *restrict shr, const char **restrict buffer, size_t *restrict len
  * @throws  The errors EACCES, EAGAIN, EIDRM, EINTR and EINVAL,
  *          as specified for semop(3)
  */
-int __attribute__((nonnull))
+int
 shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict length)
 {
 	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
@@ -604,7 +604,7 @@ shr_read_try(shr_t *restrict shr, const char **restrict buffer, size_t *restrict
  * @throws  The errors EACCES, EAGAIN, EFAULT, EIDRM, EINTR and EINVAL,
  *          as specified for semtimedop(3)
  */
-int __attribute__((nonnull))
+int
 shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
 	       size_t *restrict length, const struct timespec *timeout)
 {
@@ -638,7 +638,7 @@ shr_read_timed(shr_t *restrict shr, const char **restrict buffer,
  * 
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
-int __attribute__((nonnull))
+int
 shr_read_done(shr_t *restrict shr)
 {
 	struct sembuf op;
@@ -672,7 +672,7 @@ shr_read_done(shr_t *restrict shr)
  * 
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
-int __attribute__((nonnull))
+int
 shr_write(shr_t *restrict shr, char **restrict buffer)
 {
 	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
@@ -707,7 +707,7 @@ shr_write(shr_t *restrict shr, char **restrict buffer)
  * @throws  The errors EACCES, EAGAIN, EIDRM, EINTR and EINVAL,
  *          as specified for semop(3)
  */
-int __attribute__((nonnull))
+int
 shr_write_try(shr_t *restrict shr, char **restrict buffer)
 {
 	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
@@ -744,7 +744,7 @@ shr_write_try(shr_t *restrict shr, char **restrict buffer)
  * @throws  The errors EACCES, EAGAIN, EFAULT, EIDRM, EINTR and EINVAL,
  *          as specified for semtimedop(3)
  */
-int __attribute__((nonnull))
+int
 shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timespec *timeout)
 {
 	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));
@@ -777,7 +777,7 @@ shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timesp
  * 
  * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
  */
-int __attribute__((nonnull))
+int
 shr_write_done(shr_t *restrict shr, size_t length)
 {
 	size_t offset = sizeof(size_t) + shr->current_buffer * (shr->key.buffer_size + sizeof(size_t));

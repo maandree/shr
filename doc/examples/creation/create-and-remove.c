@@ -4,7 +4,7 @@
 
 
 #define t(c)  if (called = #c, (c) < 0)  goto fail
-static char* called = NULL;
+static const char* called = NULL;
 
 
 int main(void)
