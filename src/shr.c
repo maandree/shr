@@ -1,7 +1,7 @@
 /**
  * MIT/X Consortium License
  * 
- * Copyright © 2015  Mattias Andrée <maandree@member.fsf.org>
+ * Copyright © 2015  Mattias Andrée <m@maandree.se>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -775,7 +775,7 @@ shr_write_timed(shr_t *restrict shr, char **restrict buffer, const struct timesp
  * @return          Zero on success, -1 on error; on error,
  *                  `errno` will be set to describe the error
  * 
- * @throws  The errors EACCES, EIDRM, EINTR and EINVAL, as specified for semop(3)
+ * @throws  The errors EACCES, EIDRM and EINVAL, as specified for semop(3)
  */
 int
 shr_write_done(shr_t *restrict shr, size_t length)
